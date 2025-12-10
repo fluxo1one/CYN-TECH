@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>CYN-NEXUS COMPANY</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body { font-family: 'Poppins', sans-serif; margin:0; padding:0; background:#111; color:#eee; }
+    header { background: linear-gradient(90deg,#00FFFF,#FF00FF); color:#111; padding:40px; text-align:center; }
+    header h1 { margin:0; font-size:2.5em; font-weight:600; }
+    nav { background:#222; padding:10px; text-align:center; }
+    nav a { color:#00FFFF; margin:0 15px; text-decoration:none; font-weight:600; transition:0.3s; }
+    nav a:hover { color:#FF00FF; }
+    section { max-width:1000px; margin:40px auto; padding:20px; text-align:center; }
+    h2 { color:#00FFFF; margin-bottom:20px; }
+    .card-container { display:flex; flex-wrap:wrap; justify-content:center; gap:20px; }
+    .card { background:#222; border-radius:10px; padding:20px; width:250px; transition:transform 0.3s; }
+    .card:hover { transform:translateY(-5px); box-shadow:0 0 15px #00FFFF; }
+    .card h3 { color:#FF00FF; margin-bottom:10px; }
+    .card i { font-size:2em; margin-bottom:10px; color:#00FFFF; }
+    button { background:#00FFFF; color:#111; border:none; padding:12px 20px; border-radius:8px; cursor:pointer; transition:0.3s; font-weight:600; }
+    button:hover { background:#FF00FF; color:#fff; }
+    footer { background:#222; text-align:center; padding:20px; font-size:0.9em; color:#aaa; user-select:none; -webkit-user-select:none; cursor:default; }
+    
+    /* Admin modal (login) */
+    .login-modal, .admin-modal { 
+      position:fixed; inset:0; display:flex; align-items:center; justify-content:center; 
+      background:rgba(0,0,0,0.85); z-index:9999; visibility:hidden; opacity:0; transition:opacity .25s ease; 
+    }
+    .login-modal.show, .admin-modal.show { visibility:visible; opacity:1; }
+    
+    .login-box, .admin-panel { 
+      background:#1a1a1a; border-radius:12px; padding:30px; width:90%; max-width:500px; 
+      color:#eee; box-shadow:0 15px 35px rgba(0,255,255,0.15); border:1px solid #333; 
+    }
+    
+    .login-box h3 { margin-top:0; color:#00FFFF; display:flex; align-items:center; gap:10px; }
+    
+    .login-row { display:flex; gap:10px; margin-top:20px; }
+    .login-row input[type="password"] { 
+      flex:1; padding:12px 15px; border-radius:8px; border:2px solid #333; 
+      background:#222; color:#eee; font-size:1em; transition:border-color 0.3s;
+    }
+    .login-row input[type="password"]:focus { 
+      outline:none; border-color:#00FFFF; box-shadow:0 0 0 2px rgba(0,255,255,0.2); 
+    }
+    
+    .login-actions { display:flex; gap:10px; justify-content:flex-end; margin-top:20px; }
+    .close-x { background:transparent; border:none; color:#aaa; font-size:1.5em; cursor:pointer; padding:5px; }
+    
+    /* Admin panel styles */
+    .admin-panel { max-width:700px; }
+    .form-row { margin-bottom:20px; }
+    .input-group { display:flex; flex-direction:column; }
+    .input-label { 
+      color:#00FFFF; font-size:0.9em; margin-bottom:8px; font-weight:600; 
+      display:flex; align-items:center; gap:8px;
+    }
+    .input-hint { color:#888; font-size:0.8em; margin-top:5px; }
+    
+    .form-row input[type="text"], 
+    .form-row textarea { 
+      width:100%; padding:12px; border-radius:8px; border:2px solid #333; 
+      background:#222; color:#eee; font-family:'Poppins', sans-serif; 
+      box-sizing:border-box; transition:border-color 0.3s;
+    }
+    .form-row input[type="text"]:focus, 
+    .form-row textarea:focus { 
+      outline:none; border-color:#00FFFF; box-shadow:0 0 0 2px rgba(0,255,255,0.2); 
+    }
+    
+    .cards-edit { display:grid; grid-template-columns:1fr; gap:15px; margin:15px 0; }
+    .card-edit-item { 
+      background:#222; padding:15px; border-radius:8px; border-left:4px solid #FF00FF; 
+    }
+    .card-edit-header { 
+      display:flex; justify-content:space-between; margin-bottom:10px; 
+      font-size:0.9em; color:#aaa; 
+    }
+    .card-number { background:#333; padding:2px 8px; border-radius:4px; }
+    
+    .small { font-size:0.9em; color:#aaa; }
+    
+    .admin-actions { 
+      display:flex; gap:12px; justify-content:flex-end; margin-top:25px; 
+      padding-top:20px; border-top:1px solid #333; 
+    }
+    
+    .btn-danger { 
+      background:#FF3B3B; color:#fff; border:none; padding:10px 18px; 
+      border-radius:8px; cursor:pointer; font-weight:600; transition:0.3s;
+      display:flex; align-items:center; gap:8px;
+    }
+    .btn-danger:hover { background:#ff5555; }
+    
+    .btn-primary { 
+      background:#00FFFF; color:#111; border:none; padding:10px 20px; 
+      border-radius:8px; cursor:pointer; font-weight:600; transition:0.3s;
+      display:flex; align-items:center; gap:8px;
+    }
+    .btn-primary:hover { background:#33ffff; }
+    
+    .btn-secondary { 
+      background:#444; color:#eee; border:none; padding:10px 18px; 
+      border-radius:8px; cursor:pointer; font-weight:600; transition:0.3s;
+      display:flex; align-items:center; gap:8px;
+    }
+    .btn-secondary:hover { background:#555; }
+    
+    .admin-section { 
+      background:#222; padding:20px; border-radius:10px; margin-bottom:20px; 
+      border:1px solid #333;
+    }
+    .section-title { 
+      color:#FF00FF; margin-top:0; margin-bottom:15px; display:flex; 
+      align-items:center; gap:10px;
+    }
+    
+    #save-status { color:#00FFFF; font-weight:600; }
+    
+    @media (max-width:600px){ 
+      header h1{font-size:1.6em} 
+      .card{width:100%} 
+      .admin-actions { flex-direction:column; }
+      .admin-actions button { width:100%; justify-content:center; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1 id="site-title">CYN-NEXUS COMPANY</h1>
+  <p id="site-tagline">Transformamos ideias em soluções digitais</p>
+</header>
+
+<nav>
+  <a href="#services">Serviços</a>
+  <a href="#about">Sobre Nós</a>
+  <a href="#contact">Contato</a>
+</nav>
+
+<section id="services">
+  <h2>Nossos Serviços</h2>
+  <div class="card-container" id="cards">
+    <div class="card" data-index="0">
+      <i class="fa-solid fa-globe"></i>
+      <h3 class="card-title">Desenvolvimento Web</h3>
+      <p class="card-desc">Sites modernos, responsivos e otimizados para negócios locais.</p>
+    </div>
+    <div class="card" data-index="1">
+      <i class="fa-solid fa-paintbrush"></i>
+      <h3 class="card-title">Design & Branding</h3>
+      <p class="card-desc">Identidade visual vibrante e única para destacar sua marca.</p>
+    </div>
+    <div class="card" data-index="2">
+      <i class="fa-brands fa-whatsapp"></i>
+      <h3 class="card-title">Integração WhatsApp</h3>
+      <p class="card-desc">Conecte-se diretamente com seus clientes de forma prática.</p>
+    </div>
+    <div class="card" data-index="3">
+      <i class="fa-solid fa-lock"></i>
+      <h3 class="card-title">Painéis Administrativos</h3>
+      <p class="card-desc">Gestão segura e eficiente para o seu negócio.</p>
+    </div>
+  </div>
+</section>
+
+<section id="about">
+  <h2>Sobre Nós</h2>
+  <p id="about-text">A CYN-NEXUS COMPANY é dedicada a impulsionar a transformação digital em Moçambique, oferecendo soluções acessíveis, seguras e criativas para empresas e comunidades.</p>
+  <img id="about-img" src="https://via.placeholder.com/800x300/00FFFF/111?text=CYN-NEXUS+Digital+Impact" alt="Imagem ilustrativa" style="border-radius:10px; margin-top:20px; max-width:100%;">
+</section>
+
+<section id="contact">
+  <h2>Contato</h2>
+  <p>Quer levar seu negócio para o próximo nível?</p>
+  <button id="whatsapp-btn">Fale Conosco no WhatsApp</button>
+</section>
+
+<footer id="site-footer" aria-label="Rodapé com copyright">
+  Copyright © THELAST25
+</footer>
+
+<!-- Login modal (aparece após 4 cliques no copyright) -->
+<div id="login-modal" class="login-modal" aria-hidden="true">
+  <div class="login-box" role="dialog" aria-modal="true" aria-labelledby="login-title">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <h3 id="login-title"><i class="fa-solid fa-shield-halved"></i> Acesso Administrativo</h3>
+      <button class="close-x" id="close-login" title="Fechar">&times;</button>
+    </div>
+    <p class="small">Acesso restrito - Digite a senha de administrador</p>
+    <div class="login-row">
+      <input id="login-password" type="password" placeholder="Senha de acesso" aria-label="Senha administrativa" />
+      <button id="login-submit" class="btn-primary"><i class="fa-solid fa-right-to-bracket"></i> Entrar</button>
+    </div>
+    <div class="login-actions">
+      <button id="login-cancel" class="btn-danger"><i class="fa-solid fa-xmark"></i> Cancelar</button>
+    </div>
+    <div style="margin-top:20px; padding:12px; background:#222; border-radius:8px; border-left:3px solid #00FFFF;">
+      <small style="color:#888;">
+        <i class="fa-solid fa-circle-info"></i> Para acessar: clique 4 vezes no texto do rodapé
+      </small>
+    </div>
+  </div>
+</div>
+
+<!-- Admin modal -->
+<div id="admin-modal" class="admin-modal" aria-hidden="true">
+  <div class="admin-panel" role="dialog" aria-modal="true" aria-labelledby="admin-title">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
+      <h3 id="admin-title"><i class="fa-solid fa-sliders"></i> Painel de Controle</h3>
+      <button class="close-x" id="close-admin" title="Fechar">&times;</button>
+    </div>
+
+    <div class="admin-section">
+      <h4 class="section-title"><i class="fa-solid fa-gear"></i> Informações Gerais</h4>
+      <div class="form-row">
+        <div class="input-group">
+          <label class="input-label"><i class="fa-solid fa-heading"></i> Título do Site</label>
+          <input type="text" id="input-title" placeholder="Nome da empresa" />
+        </div>
+      </div>
+      
+      <div class="form-row">
+        <div class="input-group">
+          <label class="input-label"><i class="fa-solid fa-quote-left"></i> Tagline / Slogan</label>
+          <input type="text" id="input-tagline" placeholder="Frase de impacto" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="input-group">
+          <label class="input-label"><i class="fa-solid fa-building"></i> Sobre Nós</label>
+          <textarea id="input-about" rows="4" placeholder="Descrição da empresa, missão, visão..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-section">
+      <h4 class="section-title"><i class="fa-solid fa-layer-group"></i> Serviços Oferecidos</h4>
+      <div class="cards-edit" id="cards-edit"></div>
+    </div>
+
+    <div class="admin-section">
+      <h4 class="section-title"><i class="fa-solid fa-address-book"></i> Contato</h4>
+      <div class="form-row">
+        <div class="input-group">
+          <label class="input-label"><i class="fa-brands fa-whatsapp"></i> WhatsApp Business</label>
+          <input type="text" id="input-whatsapp" placeholder="258853800883" />
+          <small class="input-hint">Apenas números, sem + ou espaços (ex: 258853800883)</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-actions">
+      <button class="btn-secondary" id="preview-changes">
+        <i class="fa-solid fa-eye"></i> Pré-visualizar
+      </button>
+      <button class="btn-danger" id="reset-storage">
+        <i class="fa-solid fa-rotate-left"></i> Restaurar Padrão
+      </button>
+      <button class="btn-primary" id="save-admin">
+        <i class="fa-solid fa-floppy-disk"></i> Salvar Tudo
+      </button>
+    </div>
+
+    <div style="margin-top:25px; padding:15px; background:#222; border-radius:8px; border:1px solid #333;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:5px;">
+        <span style="font-weight:600; color:#eee;">
+          <i class="fa-solid fa-circle-check" style="color:#00FFFF;"></i> Status:
+        </span>
+        <span id="save-status" style="color:#00FFFF; font-weight:600;">Pronto</span>
+      </div>
+      <small style="color:#888;">
+        <i class="fa-solid fa-clock"></i> Última modificação: <span id="last-modified">Nenhuma</span>
+      </small>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ============================================
+  // CONFIGURAÇÕES E VARIÁVEIS GLOBAIS
+  // ============================================
+  const ADMIN_PASSWORD = 'HYPERCOLOSSAL'; // SENHA ATUALIZADA
+  const STORAGE_KEY = 'cyn_nexus_data_v3';
+  const footer = document.getElementById('site-footer');
+  const whatsappBtn = document.getElementById('whatsapp-btn');
+
+  // Dados padrão (fallback)
+  const defaultData = {
+    title: 'CYN-NEXUS COMPANY',
+    tagline: 'Transformamos ideias em soluções digitais',
+    about: 'A CYN-NEXUS COMPANY é dedicada a impulsionar a transformação digital em Moçambique, oferecendo soluções acessíveis, seguras e criativas para empresas e comunidades.',
+    whatsapp: '258853800883',
+    cards: [
+      { title: 'Desenvolvimento Web', desc: 'Sites modernos, responsivos e otimizados para negócios locais.' },
+      { title: 'Design & Branding', desc: 'Identidade visual vibrante e única para destacar sua marca.' },
+      { title: 'Integração WhatsApp', desc: 'Conecte-se diretamente com seus clientes de forma prática.' },
+      { title: 'Painéis Administrativos', desc: 'Gestão segura e eficiente para o seu negócio.' }
+    ],
+    lastModified: null
+  };
+
+  // ============================================
+  // FUNÇÕES DE GERENCIAMENTO DE DADOS
+  // ============================================
+  function loadData() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return defaultData;
+      
+      const data = JSON.parse(raw);
+      // Garantir estrutura completa
+      return {
+        ...defaultData,
+        ...data,
+        cards: data.cards || defaultData.cards
+      };
+    } catch (e) {
+      console.error('Erro ao carregar dados:', e);
+      return defaultData;
+    }
+  }
+
+  function saveData(data) {
+    try {
+      data.lastModified = new Date().toLocaleString('pt-BR');
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      return data.lastModified;
+    } catch (e) {
+      console.error('Erro ao salvar dados:', e);
+      return null;
+    }
+  }
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // ============================================
+  // APLICAÇÃO DOS DADOS NO SITE
+  // ============================================
+  let siteData = loadData();
+
+  function applyData(data) {
+    // Título e tagline
+    document.getElementById('site-title').textContent = data.title;
+    document.getElementById('site-tagline').textContent = data.tagline;
+    
+    // Sobre nós
+    document.getElementById('about-text').textContent = data.about;
+    
+    // Cards de serviços
+    const cardsContainer = document.getElementById('cards');
+    cardsContainer.innerHTML = '';
+    
+    const icons = [
+      'fa-solid fa-globe',
+      'fa-solid fa-paintbrush',
+      'fa-brands fa-whatsapp',
+      'fa-solid fa-lock'
+    ];
+    
+    data.cards.forEach((card, index) => {
+      const cardElement = document.createElement('div');
+      cardElement.className = 'card';
+      cardElement.dataset.index = index;
+      cardElement.innerHTML = `
+        <i class="${icons[index] || 'fa-solid fa-cube'}"></i>
+        <h3 class="card-title">${escapeHtml(card.title)}</h3>
+        <p class="card-desc">${escapeHtml(card.desc)}</p>
+      `;
+      cardsContainer.appendChild(cardElement);
+    });
+    
+    // Botão do WhatsApp
+    whatsappBtn.onclick = () => {
+      const phone = data.whatsapp.replace(/\D/g, '');
+      const text = encodeURIComponent('Olá! Gostaria de saber mais sobre seus serviços.');
+      const url = `https://wa.me/${phone}?text=${text}`;
+      window.open(url, '_blank', 'noopener,noreferrer');
+    };
+    
+    // Atualizar última modificação
+    updateLastModifiedDisplay();
+  }
+
+  function updateLastModifiedDisplay() {
+    const element = document.getElementById('last-modified');
+    if (element && siteData.lastModified) {
+      element.textContent = siteData.lastModified;
+    } else if (element) {
+      element.textContent = 'Nenhuma alteração salva';
+    }
+  }
+
+  // Aplicar dados iniciais
+  applyData(siteData);
+
+  // ============================================
+  // GERENCIAMENTO DOS MODAIS
+  // ============================================
+  const loginModal = document.getElementById('login-modal');
+  const adminModal = document.getElementById('admin-modal');
+  const loginPassword = document.getElementById('login-password');
+  const loginSubmit = document.getElementById('login-submit');
+  const loginCancel = document.getElementById('login-cancel');
+  const closeLogin = document.getElementById('close-login');
+  const closeAdmin = document.getElementById('close-admin');
+
+  // Elementos do painel admin
+  const inputTitle = document.getElementById('input-title');
+  const inputTagline = document.getElementById('input-tagline');
+  const inputAbout = document.getElementById('input-about');
+  const inputWhatsapp = document.getElementById('input-whatsapp');
+  const cardsEdit = document.getElementById('cards-edit');
+  const saveBtn = document.getElementById('save-admin');
+  const resetBtn = document.getElementById('reset-storage');
+  const previewBtn = document.getElementById('preview-changes');
+  const saveStatus = document.getElementById('save-status');
+
+  function showLoginModal() {
+    loginPassword.value = '';
+    loginModal.classList.add('show');
+    loginModal.setAttribute('aria-hidden', 'false');
+    setTimeout(() => loginPassword.focus(), 150);
+  }
+
+  function hideLoginModal() {
+    loginModal.classList.remove('show');
+    loginModal.setAttribute('aria-hidden', 'true');
+  }
+
+  function openAdminPanel() {
+    // Preencher formulário com dados atuais
+    inputTitle.value = siteData.title;
+    inputTagline.value = siteData.tagline;
+    inputAbout.value = siteData.about;
+    inputWhatsapp.value = siteData.whatsapp;
+    
+    // Carregar cards
+    cardsEdit.innerHTML = '';
+    siteData.cards.forEach((card, index) => {
+      const cardDiv = document.createElement('div');
+      cardDiv.className = 'card-edit-item';
+      cardDiv.innerHTML = `
+        <div class="card-edit-header">
+          <span class="card-number">Card ${index + 1}</span>
+          <span style="color:#FF00FF;">${card.title.substring(0, 20)}...</span>
+        </div>
+        <input type="text" class="card-title-input" data-index="${index}" 
+               placeholder="Título do serviço" value="${escapeHtml(card.title)}" 
+               style="margin-bottom:8px; width:100%;">
+        <textarea class="card-desc-input" data-index="${index}" rows="2" 
+                  placeholder="Descrição do serviço" style="width:100%;">${escapeHtml(card.desc)}</textarea>
+      `;
+      cardsEdit.appendChild(cardDiv);
+    });
+    
+    // Atualizar status
+    updateLastModifiedDisplay();
+    saveStatus.textContent = 'Pronto para editar';
+    saveStatus.style.color = '#00FFFF';
+    
+    // Mostrar modal
+    adminModal.classList.add('show');
+    adminModal.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeAdminPanel() {
+    adminModal.classList.remove('show');
+    adminModal.setAttribute('aria-hidden', 'true');
+  }
+
+  // ============================================
+  // EVENT LISTENERS
+  // ============================================
+  // Controle dos modais
+  closeLogin.addEventListener('click', hideLoginModal);
+  loginCancel.addEventListener('click', hideLoginModal);
+  closeAdmin.addEventListener('click', closeAdminPanel);
+
+  loginModal.addEventListener('click', (e) => {
+    if (e.target === loginModal) hideLoginModal();
+  });
+
+  adminModal.addEventListener('click', (e) => {
+    if (e.target === adminModal) closeAdminPanel();
+  });
+
+  // Login
+  loginSubmit.addEventListener('click', () => {
+    const enteredPassword = loginPassword.value.trim();
+    
+    if (enteredPassword === ADMIN_PASSWORD) {
+      hideLoginModal();
+      setTimeout(openAdminPanel, 200);
+    } else {
+      // Feedback visual
+      loginPassword.style.borderColor = '#FF3B3B';
+      loginPassword.style.boxShadow = '0 0 0 2px rgba(255, 59, 59, 0.2)';
+      setTimeout(() => {
+        loginPassword.style.borderColor = '#333';
+        loginPassword.style.boxShadow = 'none';
+      }, 1000);
+      
+      loginPassword.value = '';
+      loginPassword.focus();
+    }
+  });
+
+  loginPassword.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') loginSubmit.click();
+    if (e.key === 'Escape') hideLoginModal();
+  });
+
+  // Preview das alterações
+  previewBtn.addEventListener('click', () => {
+    const previewData = {
+      title: inputTitle.value.trim() || siteData.title,
+      tagline: inputTagline.value.trim() || siteData.tagline,
+      about: inputAbout.value.trim() || siteData.about,
+      whatsapp: inputWhatsapp.value.replace(/\D/g, '') || siteData.whatsapp,
+      cards: []
+    };
+
+    // Coletar dados dos cards
+    const titleInputs = cardsEdit.querySelectorAll('.card-title-input');
+    const descInputs = cardsEdit.querySelectorAll('.card-desc-input');
+    
+    for (let i = 0; i < titleInputs.length; i++) {
+      previewData.cards.push({
+        title: titleInputs[i].value.trim() || siteData.cards[i].title,
+        desc: descInputs[i].value.trim() || siteData.cards[i].desc
+      });
+    }
+
+    // Aplicar preview
+    const originalData = JSON.parse(JSON.stringify(siteData));
+    applyData(previewData);
+    
+    // Feedback visual
+    saveStatus.textContent = 'MODO PRÉ-VISUALIZAÇÃO';
+    saveStatus.style.color = '#FF00FF';
+    previewBtn.disabled = true;
+    saveBtn.disabled = true;
+    
+    // Reverter após 6 segundos
+    setTimeout(() => {
+      siteData = originalData;
+      applyData(siteData);
+      saveStatus.textContent = 'Preview finalizado';
+      setTimeout(() => {
+        saveStatus.textContent = 'Pronto para editar';
+        saveStatus.style.color = '#00FFFF';
+        previewBtn.disabled = false;
+        saveBtn.disabled = false;
+      }, 1500);
+    }, 6000);
+  });
+
+  // Salvar alterações permanentes
+  saveBtn.addEventListener('click', () => {
+    // Validar WhatsApp
+    const whatsappNum = inputWhatsapp.value.replace(/\D/g, '');
+    if (!whatsappNum || whatsappNum.length < 8) {
+      alert('⚠️ Por favor, insira um número de WhatsApp válido!');
+      inputWhatsapp.focus();
+      return;
+    }
+
+    // Coletar dados
+    siteData.title = inputTitle.value.trim() || defaultData.title;
+    siteData.tagline = inputTagline.value.trim() || defaultData.tagline;
+    siteData.about = inputAbout.value.trim() || defaultData.about;
+    siteData.whatsapp = whatsappNum;
+
+    // Coletar cards
+    const titleInputs = cardsEdit.querySelectorAll('.card-title-input');
+    const descInputs = cardsEdit.querySelectorAll('.card-desc-input');
+    
+    siteData.cards = [];
+    for (let i = 0; i < titleInputs.length; i++) {
+      siteData.cards.push({
+        title: titleInputs[i].value.trim() || defaultData.cards[i].title,
+        desc: descInputs[i].value.trim() || defaultData.cards[i].desc
+      });
+    }
+
+    // Salvar
+    const modificationTime = saveData(siteData);
+    applyData(siteData);
+    
+    // Feedback
+    saveStatus.textContent = 'SALVO COM SUCESSO!';
+    saveStatus.style.color = '#00FF00';
+    
+    setTimeout(() => {
+      saveStatus.textContent = 'Pronto para editar';
+      saveStatus.style.color = '#00FFFF';
+      closeAdminPanel();
+    }, 1200);
+  });
+
+  // Resetar para padrão
+  resetBtn.addEventListener('click', () => {
+    if (confirm('⚠️ TEM CERTEZA?\n\nIsso irá restaurar TODOS os dados para os valores padrão.\nAs alterações atuais serão perdidas.')) {
+      localStorage.removeItem(STORAGE_KEY);
+      siteData = JSON.parse(JSON.stringify(defaultData));
+      saveData(siteData);
+      applyData(siteData);
+      closeAdminPanel();
+      alert('✅ Dados restaurados com sucesso!');
+    }
+  });
+
+  // ============================================
+  // ACESSO SECRETO (4 cliques no rodapé)
+  // ============================================
+  let secretClickCount = 0;
+  let secretClickTimer = null;
+
+  footer.addEventListener('click', (e) => {
+    // Só conta cliques no próprio footer
+    if (e.target !== footer && !footer.contains(e.target)) return;
+    
+    secretClickCount++;
+    
+    if (secretClickTimer) clearTimeout(secretClickTimer);
+    secretClickTimer = setTimeout(() => {
+      secretClickCount = 0;
+    }, 1500);
+    
+    // Feedback visual (opcional)
+    if (secretClickCount > 0 && secretClickCount < 4) {
+      footer.style.opacity = '0.7';
+      setTimeout(() => {
+        footer.style.opacity = '1';
+      }, 150);
+    }
+    
+    if (secretClickCount === 4) {
+      secretClickCount = 0;
+      showLoginModal();
+    }
+  });
+
+  // ============================================
+  // ACESSIBILIDADE E CONTROLES GLOBAIS
+  // ============================================
+  document.addEventListener('keydown', (e) => {
+    // ESC fecha modais
+    if (e.key === 'Escape') {
+      if (adminModal.classList.contains('show')) closeAdminPanel();
+      if (loginModal.classList.contains('show')) hideLoginModal();
+    }
+    
+    // Ctrl+Alt+A abre admin (atalho alternativo)
+    if (e.ctrlKey && e.altKey && e.key === 'A') {
+      e.preventDefault();
+      showLoginModal();
+    }
+  });
+
+  // Inicialização final
+  updateLastModifiedDisplay();
+</script>
+
+</body>
+</html>
